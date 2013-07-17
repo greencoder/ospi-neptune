@@ -17,11 +17,17 @@ It is possible to run the server in the background from the command line and kee
 
     $ nohup sudo python aspi_server.py &
 
-While this does work, the server will not start automatically when the Raspberry Pi boots. Follow the instructions below to set up *supervisor* to run the server automatically.
+While this does work, the server will not start automatically when the Raspberry Pi boots. Follow the instructions in the wiki to set up *supervisor* to run the server automatically.
 
-To operate stations from the command-line, use the `operate.py` command:
+###Clients###
+
+One of the nice features of the server is that clients don't have to run with superuser privileges. (only the server does)
+
+There is a python client included to operate stations from the command-line:
 
     $ python opensprinkler.py --station [STATION_NUMBER] --minutes [MINUTES_TO_RUN]
+
+Look in the `example_clients` directory for examples of how to connect to the server in other languages.
 
 ###Configuration###
 
@@ -63,32 +69,4 @@ I welcome any feedback or advice you are willing to offer. You can use the issue
 
 This project is distributed under the MIT license. Do whatever you want with it, but please provide attribution back and don't hold me liable.
 
-###Installing Supervisor###
-
-In order to make sure your server starts at boot and stays running, you'll need to use a program like *upstart* or *supervisor*.
-
-To configure supervisor, first install it:
-
-    $ sudo apt-get install supervisor
-
-Next, create a new file at `/etc/supervisor/conf.d/ospi-neptune.conf` and put the following in the file. Change the command path if necessary. You will have to create this file with superuser privileges.
-
-    [program:ospi-neptune]
-    command = /usr/bin/python /home/pi/ospi-neptune/ospi_server.py
-    directory = /home/pi/ospi-neptune
-    user = pi
-    autostart = true
-    autorestart = true
-    stdout_logfile = /var/log/supervisor/ospi-neptune.log
-    stderr_logfile = /var/log/supervisor/ospi-neptune_err.log
-
-Next, restart the supervisor service and start the ospi-neptune program:
-
-    sudo service supervisor restart
-    sudo supervisorctl start ospi-neptune
-
-If you get an *no such process* error, kill the `supervisord` process to make sure it picks up the latest configuration:
-
-    sudo killall -9 supervisord
-    sudo service supervisor start
 
