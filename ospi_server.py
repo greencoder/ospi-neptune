@@ -133,5 +133,5 @@ if __name__ == "__main__":
         server.serve_forever()
     except KeyboardInterrupt:
         print "Shutting down server."
-        sprinkler.cleanup()
-        sys.exit(0)
+        server.shutdown()
+
