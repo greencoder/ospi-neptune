@@ -56,6 +56,7 @@ if __name__ == "__main__":
     # Parse command-line arguments
     parser = argparse.ArgumentParser()
     parser.add_argument('--file', required=True)
+    parser.add_argument("--dump", action="store_true", dest="dump", default=False)
     args = vars(parser.parse_args())
 
     # Try to open up the filename that was passed
@@ -75,6 +76,12 @@ if __name__ == "__main__":
 
     if type(events) is not list:
         sys.exit("Error in schedule.json syntax. Could not find events list.")
+
+    # If we get a dump flag, we just want to output the schedule 
+    if args['dump']:
+        for item in events:
+            print Event(item)
+        sys.exit()
 
     # Loop over all the events and find the first one that should
     # be run now.
