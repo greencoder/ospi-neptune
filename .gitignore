@@ -1,4 +1,6 @@
 DELAY
+*.PID
+*.pid
 *.DS_Store*
 log.txt
 scripts/*
