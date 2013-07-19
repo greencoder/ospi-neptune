@@ -154,8 +154,11 @@ class OpenSprinkler():
         # First, set all stations to zero
         station_values = [0] * self.number_of_stations
 
-        # Next, enable just the station to run (adjusting for 0-based index)        
-        station_values[station_number-1] = 1
+        # Next, enable just the station to run (adjusting for 0-based index)
+        try:
+            station_values[station_number-1] = 1
+        except IndexError:
+            self.log("Invalid station number %d passed. Skipping." % station_number)
 
         # Send the command
         self._set_shift_registers(station_values)

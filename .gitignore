@@ -3,3 +3,4 @@ DELAY
 log.txt
 scripts/*
 *.pyc
+scheduler/schedule.json
