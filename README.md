@@ -61,6 +61,10 @@ You can schedule the operation of stations via cron:
 
 Remember, this is cron, so make sure to use full paths to your files.
 
+### File-Based Scheduling###
+
+Instead of running cron to schedule your events, you can use the built-in scheduler. (this is the preferred method). See the  documentation [here](docs/scheduler.md).
+
 ###Feedback###
 
 I welcome any feedback or advice you are willing to offer. You can use the issues tab in Github or reach out to me at snewman18 [at gmail dot com].

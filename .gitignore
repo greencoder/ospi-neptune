@@ -1,5 +1,8 @@
 DELAY
+*.PID
+*.pid
 *.DS_Store*
 log.txt
 scripts/*
 *.pyc
+scheduler/schedule.json

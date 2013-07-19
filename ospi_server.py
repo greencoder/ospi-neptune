@@ -54,10 +54,14 @@ class TCPHandler(SocketServer.BaseRequestHandler):
             self.request.sendall("BAD REQUEST")
 
         # Check the inputs
-        if station not in range(0, config.NUMBER_OF_STATIONS):
+        if station not in range(0, config.NUMBER_OF_STATIONS+1):
+            self.log("Received Bad Station Number: %d" % station)
             self.request.sendall("BAD STATION NUMBER")
-        elif minutes not in range(0, config.MAX_MINUTES_PER_STATION):
+            return
+        elif minutes not in range(0, config.MAX_MINUTES_PER_STATION+1):
+            self.log("Received Invalid Number of Minutes: %d" % minutes)
             self.request.sendall("BAD STATION NUMBER")
+            return
         else:
             self.request.sendall("OK")
             
