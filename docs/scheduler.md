@@ -20,3 +20,10 @@ The schedule file is written in JSON and must be an array of dictionaries. Four 
 * `days` - the day(s) of the week that the event should run on. This must be an array and can contain multiple days.
 * `minutes` - the number of minutes the job should run for
 * `start` - the time at which the job should run. Must be written in 24-hour format. The time will be checked against whatever timezone your system uses. (i.e. if you are PST, a start time of '15:00' will run at 3pm Pacific Time)
+
+###Running the Scheduler###
+
+Currently, the scheduler is meant to be run every minute by cron. This may change to a daemon-based approach in the future.
+
+    # Run every minute
+    * * * * * /usr/bin/python /home/pi/ospi-neptune/scheduler/schedule.py --file /home/pi/ospi-neptune/scheduler/schedule.json
