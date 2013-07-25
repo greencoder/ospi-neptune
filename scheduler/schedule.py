@@ -99,7 +99,8 @@ if __name__ == "__main__":
             try:
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 sock.connect((config.HOST, config.PORT))
-                sock.sendall("%s,%s" % (event.station, event.minutes))
+                cmd = { 'cmd': 'operate-station', 'args': { 'station': event.station, 'minutes': event.minutes } }
+                sock.sendall("%s" % json.dumps(cmd))
                 sock.close()
             except socket.error:
                 Event.log("Error: Could not connect to socket")
