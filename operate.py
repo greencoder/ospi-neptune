@@ -14,10 +14,10 @@ args = vars(parser.parse_args())
 station = args['station']
 minutes = args['minutes']
 
-if station not in range(0, config.NUMBER_OF_STATIONS):
+if station not in range(0, config.NUMBER_OF_STATIONS+1):
     sys.exit("Error: Invalid Station Number. Must be 0 to %d." % config.NUMBER_OF_STATIONS)
 
-if minutes not in range(0, config.MAX_MINUTES_PER_STATION):
+if minutes not in range(0, config.MAX_MINUTES_PER_STATION+1):
     sys.exit("Error: The number of minutes exceeds what is allowed in the configuration.")
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
