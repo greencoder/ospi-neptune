@@ -134,7 +134,7 @@ class OpenSprinkler():
         """
         # Calculate what the datetime object will be by adding the current time
         # and the number of hours to delay. This will be the body of the DELAY file.
-        future_time = datetime.datetime.now() + datetime.timedelta(hours)
+        future_time = datetime.datetime.now() + datetime.timedelta(hours=hours)
         expiration = future_time.strftime('%Y-%m-%d %H:%M')
         
         # Write out the DELAY file and make the body the expiration time.
