@@ -6,6 +6,10 @@ import socket
 CUR_DIR = os.path.dirname(os.path.realpath(__file__))
 PARENT_DIR = os.path.abspath(os.path.join(CUR_DIR, os.pardir))
 
+# Add the parent dir to the search path so we can import config
+sys.path.insert(0, PARENT_DIR)
+import config
+
 # Look in the main directory for any files that end in .pid. The name of 
 # the file represents the pid of any running Sprinkler programs
 pid_files = [f for f in os.listdir(PARENT_DIR) if f.endswith('.pid')]
@@ -43,7 +47,7 @@ if not needs_cleanup:
 
 # If we got here, we should ensure that all stations are turned off.
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-sock.connect(('localhost', 9999))
+sock.connect((config.HOST, config.PORT))
 sock.sendall("0,0") # Station 0 means 'all off'
 sock.close()
 

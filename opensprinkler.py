@@ -49,6 +49,9 @@ class OpenSprinkler():
             GPIO.output(self.PIN_SR_CLK, True)
 
         GPIO.output(self.PIN_SR_LAT, True)
+        
+        # Update the status file
+        self._update_status_file()
 
     def _initialize_hardware(self):
         """
@@ -89,13 +92,23 @@ class OpenSprinkler():
         """
         self.log("Running Cleanup.")
         self.reset_all_stations()
-        self._remove_status_file()
+        self._remove_pid_file()
         GPIO.cleanup()
 
     ### Convenience methods for filesystem operations. You don't need to call these 
     ### manually, they are handled by the higher-level operations.
 
-    def _create_status_file(self, minutes_to_run):
+    def _update_status_file(self):
+        """
+        Updates the STATUS file with the value for each station.
+        """
+        file_path = os.path.join(CUR_DIR, 'STATUS')
+        f = open(file_path, 'w')
+        station_values = "%s" % "".join([str(s) for s in self.station_values])
+        f.write(station_values)
+        f.close()
+
+    def _create_pid_file(self, minutes_to_run):
         """
         Writes a PID file to the directory to indicate what the PID of the 
         current program is and when it expires.
@@ -106,7 +119,7 @@ class OpenSprinkler():
         f.write("%s" % expiration.strftime('%Y-%m-%d %H:%M'))
         f.close()
 
-    def _remove_status_file(self):
+    def _remove_pid_file(self):
         """
         Handles removal of the PID file.
         """
@@ -114,16 +127,56 @@ class OpenSprinkler():
         if os.path.exists(file_path):
             os.remove(file_path)
 
+    def create_delay(self, hours):
+        """
+        Creates a delay file that will expire after the number of hours
+        passed. 
+        """
+        # Calculate what the datetime object will be by adding the current time
+        # and the number of hours to delay. This will be the body of the DELAY file.
+        future_time = datetime.datetime.now() + datetime.timedelta(hours)
+        expiration = future_time.strftime('%Y-%m-%d %H:%M')
+        
+        # Write out the DELAY file and make the body the expiration time.
+        self.log("Creating DELAY file with expiration %s" % expiration) 
+        delay_file_path = os.path.join(CUR_DIR, 'DELAY')
+        f = open(delay_file_path, 'w')
+        f.write(expiration)
+        f.close()
+
     def check_for_delay(self):
         """
-        Look at the filesystem to see if a DELAY file exists. Used before
-        an operation starts to see if it's allowed to happen.
+        Look at the filesystem to see if a DELAY file exists. If the 
+        file does exist, open it up to see if it's expired. If so, remove
+        the file.
         """
-        if os.path.exists(os.path.join(CUR_DIR, 'DELAY')):
-            self.log("Found DELAY file.")
-            return True
+        delay_file_path = os.path.join(CUR_DIR, 'DELAY')
+
+        if os.path.exists(delay_file_path):
+            # Read the file so we can inspect the contents
+            f = open(delay_file_path, 'r')
+            data = f.read()
+            f.close()
+            # The file might have a bad value. Check carefully.
+            try:
+                # Try to turn the body into a datetime object
+                expiration = datetime.datetime.strptime(data, '%Y-%m-%d %H:%M')
+                now = datetime.datetime.now()
+                # If the expiration time is less than now (i.e. it has passed)
+                # then go ahead and remove the file.
+                if now >= expiration:
+                    self.log("Expiration has passed. Removing DELAY file.")
+                    os.remove(delay_file_path)
+                else:
+                    return expiration
+            except ValueError:
+                # If we can't cast the value of the file into a date object, there is 
+                # no sense keeping the file around. Deleate it.
+                self.log("Could not read date in file. Removing file.")
+                os.remove(delay_file_path)
+                return None
         else:
-            return False
+            return None
 
     ### Logging functionality ###
 
@@ -142,7 +195,7 @@ class OpenSprinkler():
 
     ### Higher-Level Interface. These are the functions you want to call
 
-    def operate_station(self, station_number, minutes, queue=None, callback_function=None):
+    def operate_station(self, station_number, minutes, queue, callback_function):
         """
         This is the method that operates a station. Running it causes any 
         currently-running stations to turn off, then a pid file is created that 
@@ -151,23 +204,33 @@ class OpenSprinkler():
         """
         self.log("Operating station %d for %d minutes." % (station_number, minutes))
 
+        # Check to see if a delay is in effect
+        if self.check_for_delay():
+            self.log("Delay in effect. Job will not run.")
+            return
+
         # First, set all stations to zero
-        station_values = [0] * self.number_of_stations
+        self.station_values = [0] * self.number_of_stations
 
         # Next, enable just the station to run (adjusting for 0-based index)
         try:
-            station_values[station_number-1] = 1
+            self.station_values[station_number-1] = 1
         except IndexError:
             self.log("Invalid station number %d passed. Skipping." % station_number)
 
         # Send the command
-        self._set_shift_registers(station_values)
-
+        self._set_shift_registers(self.station_values)
+        
         # Create a filesystem flag to indicate that the system is running
-        self._create_status_file(minutes)
+        self._create_pid_file(minutes)
 
         # After the number of minutes have passed, turn it off
         time_to_stop = datetime.datetime.now() + datetime.timedelta(minutes=minutes)
+        
+        # We want to stop it 5 seconds early so it's completely off when the time is up. 
+        # This ensures that a program that is set to start the next minute won't have 
+        # to kill this one.
+        time_to_stop -= datetime.timedelta(seconds=5)
         
         while True:
             # If the queue is not empty, it's because a message was passed from the 
@@ -176,7 +239,7 @@ class OpenSprinkler():
                 self.log("Recieved Kill Signal in Thread")
                 # Remove the item from the queue
                 queue.get(1)
-                self._remove_status_file()
+                self._remove_pid_file()
                 self.reset_all_stations()
                 break
             if datetime.datetime.now() < time_to_stop:
@@ -187,7 +250,7 @@ class OpenSprinkler():
                 # If one did, we don't want to close all valves anymore.
                 # We need a way to check and see if this process is the most
                 # recent one.
-                self._remove_status_file()
+                self._remove_pid_file()
                 self.reset_all_stations()
                 break
 
@@ -201,6 +264,7 @@ class OpenSprinkler():
         """
         self.log("Turning Off All Stations.")
         off_values = [0] * self.number_of_stations
+        self.station_values = off_values
         self._set_shift_registers(off_values)
 
     def __init__(self, debug=False, number_of_stations=8):

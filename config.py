@@ -8,3 +8,7 @@ MAX_MINUTES_PER_STATION = 30
 
 # Print any server debugging and log messages to the console
 DEBUG = True
+
+# The hostname and port number for the server.
+HOST = "127.0.0.1"
+PORT = 9999

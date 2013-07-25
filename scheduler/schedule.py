@@ -6,6 +6,11 @@ import socket
 import argparse
 
 CUR_DIR = os.path.dirname(os.path.realpath(__file__))
+PARENT_DIR = os.path.abspath(os.path.join(CUR_DIR, os.pardir))
+
+# Add the parent dir to the search path so we can import config
+sys.path.insert(0, PARENT_DIR)
+import config
 
 class Event():
     
@@ -93,7 +98,7 @@ if __name__ == "__main__":
             Event.log("Running event: %s" % event)
             try:
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                sock.connect(('localhost', 9999))
+                sock.connect((config.HOST, config.PORT))
                 sock.sendall("%s,%s" % (event.station, event.minutes))
                 sock.close()
             except socket.error:

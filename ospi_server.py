@@ -8,6 +8,7 @@ import time
 import datetime
 import argparse
 import atexit
+import json
 
 from opensprinkler import OpenSprinkler
 import config
@@ -44,14 +45,47 @@ class TCPHandler(SocketServer.BaseRequestHandler):
         # Receive the data on the socket
         data = self.request.recv(1024).strip()
         
-        # Make sure they passed "station,minutes"
-        match = re.match("(?P<station>\d+),(?P<minutes>\d+)", data)
+        # Decode the JSON that arrived on the socket
+        try:
+            json_data = json.loads(data)
+        except Exception, e:
+            self.log("Could not decode JSON. Skipping.")
+            return
 
-        if match:
-            station = int(match.group('station'))
-            minutes = int(match.group('minutes'))
+        if json_data.has_key('cmd') and json_data.has_key('args'):
+            command = json_data['cmd']
+            arguments = json_data['args']
         else:
-            self.request.sendall("BAD REQUEST")
+            self.log("JSON data missing cmd or args. Skipping")
+            return
+        
+        # If the command is to set the delay, check the args for 'hours'
+        if command == "create-delay":
+            self._handle_command_create_delay(arguments)
+
+        # If the command is to get the station status, we don't need args.
+        elif command == "status":
+            self._handle_command_status(arguments)
+
+        # If the command is to operate stations, we need "minutes" and "stations" arguments
+        elif command == "operate-station":
+            self._handle_command_operate_station(arguments)
+
+    ### Command Handlers ###
+
+    def _handle_command_operate_station(self, arguments):
+        """
+        Handles the command to operate a station
+        """
+        if not (arguments.has_key('minutes') and arguments.has_key('station')):
+            self.log("operate-station command received but station or minutes argument missing. Skipping.")
+            return
+
+        try:
+            station = int(arguments['station'])
+            minutes = int(arguments['minutes'])
+        except ValueError:
+            self.log("opearate station command received but station or minutes arguments were invalid. Skipping.")
 
         # Check the inputs
         if station not in range(0, config.NUMBER_OF_STATIONS+1):
@@ -64,7 +98,7 @@ class TCPHandler(SocketServer.BaseRequestHandler):
             return
         else:
             self.request.sendall("OK")
-            
+
         # See if there is already a running thread. If so, we issue 
         # a 'DIE' command to all threads (via queue) to make sure they 
         # stop before we start the new thread. We pause for 2 seconds 
@@ -85,7 +119,29 @@ class TCPHandler(SocketServer.BaseRequestHandler):
             self.log("Sending command to operate station %d for %d minutes" % (station, minutes))
             thread.start()
         else:
-            print "Delay is in effect. Job will not run."
+            self.log("Delay is in effect. Job will not run.")
+
+    def _handle_command_status(self, arguments):
+        """
+        Handles a command to get the current status of the stations
+        """
+        self.log("status command received but functionality not built yet. Skipping.")
+        return
+    
+    def _handle_command_create_delay(self, arguments):
+        """
+        Comamnd handler for creating delay files
+        """
+        if not arguments.has_key('hours'):
+            self.log("delay command received but hours argument missing. Skipping.")
+            return
+
+        try:
+            hours = int(arguments['hours'])
+            sprinkler.create_delay(hours)
+        except ValueError:
+            self.log("Delay command received but hours argument was not an integer.")
+            return
 
 class SimpleServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
     """
@@ -106,15 +162,6 @@ class SimpleServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
 
 if __name__ == "__main__":
 
-    # Parse command-line arguments
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--host', required=False, default='127.0.0.1')
-    parser.add_argument('--port', type=int, required=False, default=9999)
-        
-    args = vars(parser.parse_args())
-    host = args['host']
-    port = args['port']
-
     # Keep a list of all running threads so we can make sure that two stations 
     # don't run at the same time.
     thread_list = []
@@ -129,8 +176,8 @@ if __name__ == "__main__":
     atexit.register(sprinkler.cleanup)
 
     # Create the server
-    server = SimpleServer((host, port), TCPHandler)
-    print "Starting server on %s:%d" % (host, port)
+    server = SimpleServer((config.HOST, config.PORT), TCPHandler)
+    print "Starting server on %s:%d" % (config.HOST, config.PORT)
 
     # Terminate gracefully with Ctrl-C
     try:

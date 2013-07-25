@@ -25,7 +25,7 @@ One of the nice features of the server is that clients don't have to run with su
 
 There is a python client included to operate stations from the command-line:
 
-    $ python opensprinkler.py --station [STATION_NUMBER] --minutes [MINUTES_TO_RUN]
+    $ python operate.py --station [STATION_NUMBER] --minutes [MINUTES_TO_RUN]
 
 Look in the `example_clients` directory for examples of how to connect to the server in other languages.
 
