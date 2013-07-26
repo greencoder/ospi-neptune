@@ -31,6 +31,7 @@ else {
     <meta charset="utf-8">
     <title>Neptune</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="description" content="">
     <meta name="author" content="">
 
@@ -120,13 +121,11 @@ else {
 
             });
             
-            entries = _(entries).sortBy('startTime');
-            var jsonEntries = JSON.stringify(entries, null, 4);
+            sortedEntries = _(entries).sortBy('start');
+            var jsonEntries = JSON.stringify(sortedEntries, null, 4);
             
-            if (!hasErrors) {
-                $('#frmSchedule #entries').val(jsonEntries);
-                $('#frmSchedule').submit();
-            }
+            $('#frmSchedule #entries').val(jsonEntries);
+            $('#frmSchedule').submit();
             
         });
 
@@ -240,7 +239,7 @@ else {
 						foreach (range(0,23) as $hour) { 
 							$paddedHour = str_pad($hour, 2, '0', STR_PAD_LEFT);
 							$selected = ($theStartHour == $hour) ? "selected" : "";
-							echo "<option value='$hour' $selected>$paddedHour</option>\n";
+							echo "<option value='$paddedHour' $selected>$paddedHour</option>\n";
 						}
 						?>
 					</select>
@@ -339,7 +338,7 @@ else {
 						<?php 
 							foreach (range(0,23) as $hour) { 
 								$paddedHour = str_pad($hour, 2, '0', STR_PAD_LEFT);
-								echo "<option value='$hour'>$paddedHour</option>\n";
+								echo "<option value='$paddedHour'>$paddedHour</option>\n";
 							}
 						?>
 					</select>

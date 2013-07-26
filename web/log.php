@@ -17,6 +17,7 @@ if (file_exists($filePath)) {
     <meta charset="utf-8">
     <title>Neptune</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="description" content="">
     <meta name="author" content="">
 
