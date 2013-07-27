@@ -1,5 +1,6 @@
 <?php
 
+include('header.inc.php');
 include("config.inc.php");
 
 $isDelay = false;
@@ -35,37 +36,7 @@ if (file_exists($delayFilePath)) {
 }
 
 ?>
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <title>Neptune</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="description" content="">
-    <meta name="author" content="">
 
-    <link href="http://twitter.github.io/bootstrap/assets/css/bootstrap.css" rel="stylesheet">
-    <style>
-      body {
-        padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
-      }
-      h1 {
-          margin-bottom: 25px;
-      }
-    </style>
-    <link href="http://twitter.github.io/bootstrap/assets/css/bootstrap-responsive.css" rel="stylesheet">
-
-    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
-    <!--[if lt IE 9]>
-      <script src="http://twitter.github.io/bootstrap//assets/js/html5shiv.js"></script>
-    <![endif]-->
-
-    <!-- Fav and touch icons -->
-	<link rel="apple-touch-icon-precomposed" href="icon.png">
-    <link rel="shortcut icon" href="favicon.ico">
-
-    <script src="http://twitter.github.io/bootstrap/assets/js/jquery.js"></script>
     <script>
     $(document).ready(function() {
        
@@ -161,13 +132,6 @@ if (file_exists($delayFilePath)) {
      </p>
 
     </div> <!-- /container -->
-
-    <!-- Le javascript
-    ================================================== -->
-    <!-- Placed at the end of the document so the pages load faster -->
-    <script src="http://twitter.github.io/bootstrap/assets/js/bootstrap-dropdown.js"></script>
-    <script src="http://twitter.github.io/bootstrap/assets/js/bootstrap-button.js"></script>
-    <script src="http://twitter.github.io/bootstrap/assets/js/bootstrap-collapse.js"></script>
 
   </body>
 </html>
