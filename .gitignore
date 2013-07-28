@@ -1,4 +1,5 @@
 STATUS
+.bash_history
 DELAY
 *.PID
 *.pid
